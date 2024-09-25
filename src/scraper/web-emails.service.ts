@@ -38,11 +38,11 @@ export class WebEmailsService {
                     }
 
                 } catch (err) {
-                    this.logger.error(`Error processing link ${link}: ${err.message}`);
+                    
                 }
             }
         } catch (err) {
-            this.logger.error(`Error navigating to the initial URL: ${err.message}`);
+            
         } finally {
             await browser.close();
         }
