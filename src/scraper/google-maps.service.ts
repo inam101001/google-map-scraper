@@ -2,20 +2,54 @@ import { Injectable, Logger } from '@nestjs/common';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin = require("puppeteer-extra-plugin-stealth");
 import { WebEmailsService } from './web-emails.service';
+import { GoogleMapsDbService } from './google-maps-db.service';
 
 @Injectable()
 export class GoogleMapsService {
   private readonly logger = new Logger(GoogleMapsService.name);
   private readonly scrollDelay: number = 4000;
+  private readonly collectionName: string = 'SCRAPED_DATA';
 
-  constructor(private readonly webEmailsService: WebEmailsService) {
+  constructor(
+    private readonly webEmailsService: WebEmailsService,
+    private readonly googleMapsDbService: GoogleMapsDbService,
+  ) {
     puppeteer.use(StealthPlugin());
+  }
+
+  async scrapeAndStore(): Promise<{ message: string }> {
+    try {
+      while (true) {
+        const queryDoc = await this.googleMapsDbService.fetchNextQuery();
+
+        if (!queryDoc) {
+          this.logger.log('No more queries to process. Scraping completed.');
+          break;
+        }
+
+        const { query, _key } = queryDoc;
+        const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(query)}`;
+
+        this.logger.log(`Processing query: "${query}"`);
+
+        const services = await this.scrapeGoogleMaps(searchUrl);
+
+        await this.googleMapsDbService.seedServiceData(services, this.collectionName);
+        await this.googleMapsDbService.updateQueryStatus(_key, true);
+
+        this.logger.log(`Query "${query}" scraped and stored successfully.`);
+      }
+
+      return { message: 'Scraping process completed. No more queries.' };
+    } catch (error) {
+      this.logger.error('Error during scraping and storing process:', error.message);
+      return { message: 'Error during scraping and storing process: ' + error.message };
+    }
   }
 
   private async autoScroll(page): Promise<void> {
     await page.evaluate(async () => {
       const wrapper = document.querySelector('div[role="feed"]');
-
       await new Promise<void>((resolve) => {
         let totalHeight = 0;
         const distance = 1000;
