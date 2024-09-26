@@ -44,7 +44,7 @@ export class GoogleMapsService {
     });
   }
   async scrapeGoogleMaps(url: string): Promise<any[]> {
-    const browser = await puppeteer.launch({ headless: true,args: [
+    const browser = await puppeteer.launch({ headless: false,args: [
       '--disable-gpu',
       '--no-sandbox'
     ],protocolTimeout: 90000 });
