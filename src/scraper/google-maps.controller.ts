@@ -5,11 +5,11 @@ import { ApiTags } from '@nestjs/swagger';
 @Controller()
 @ApiTags('API')
 export class GoogleMapsController {
-  
-constructor(private readonly googleMapsService: GoogleMapsService) { }
 
-  @Post('scrape-&-seed')
-  async scrapeAndStore() {
-    return this.googleMapsService.scrapeAndStore();
-  }
+    constructor(private readonly googleMapsService: GoogleMapsService) { }
+
+    @Post('scrape-and-seed')
+    async scrapeAndStore() {
+        return this.googleMapsService.scrapeAndStore();
+    }
 }

@@ -65,7 +65,11 @@ if (!gotTheLock) {
 
     app.whenReady().then(() => {
         // Start the NestJS application
-        nestProcess = exec('npm run start:prod');
+        console.log('Starting NestJS server...1');
+        const serverScript = path.join(__dirname, '..', 'main.js');
+        console.log('Starting NestJS server...2');
+        nestProcess = exec(`node ${serverScript}`);
+        console.log('Starting NestJS server...3');
 
         // Check if the server is ready
         const port = 3001;
@@ -79,7 +83,7 @@ if (!gotTheLock) {
 
         // Handle NestJS output
         nestProcess.stdout.on('data', (data) => {
-            console.log(data);
+            console.log('NestJS Output:', data);
         });
         nestProcess.stderr.on('data', (data) => {
             console.error(data);

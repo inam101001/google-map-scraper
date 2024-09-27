@@ -29,6 +29,7 @@
     "icon": "src/electron/icon.ico",
     "files": [
       "dist/electron/**/*",
+      "dist/main.js",
       "node_modules/**/*" 
     ],
     "win": {

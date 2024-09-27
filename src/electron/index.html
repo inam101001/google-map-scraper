@@ -10,7 +10,25 @@
     <button id="myButton">Start Scraping</button>
 
     <script>
-        document.getElementById('myButton').addEventListener('click', () => {
+        document.getElementById('myButton').addEventListener('click', async () => {
+            try {
+                const response = await fetch('http://localhost:3001/scrape-and-seed', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert('Scraping started successfully!');
+                } else {
+                    alert(`Error: ${result.message || 'Failed to start scraping.'}`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error occurred while starting scraping.');
+            }
         });
     </script>
 </body>
