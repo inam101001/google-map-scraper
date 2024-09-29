@@ -4,13 +4,100 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Google Maps Scraper</title>
+    <style>
+        /* Your existing styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #910BD0 0%, #A92DE3 50%, #C15DF0 100%);
+            color: #fff;
+        }
+
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #C15DF0;
+        }
+
+        #myButton {
+            background-color: #910BD0;
+            border: none;
+            padding: 1rem 2rem;
+            color: white;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #myButton:hover {
+            background-color: #A92DE3;
+            transform: scale(1.05);
+        }
+
+        #loader {
+            display: none;
+            margin: 1rem auto;
+            border: 8px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 8px solid #C15DF0;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .message {
+            margin-top: 1rem;
+            font-size: 1.1rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            color: #C15DF0;
+        }
+    </style>
 </head>
 <body>
-    <h1>Google Maps Scraper</h1>
-    <button id="myButton">Start Scraping</button>
+    <div class="container">
+        <h1>Google Maps Scraper</h1>
+        <button id="myButton">Start Scraping</button>
+        <div id="loader"></div>
+        <div class="message" id="statusMessage"></div>
+    </div>
+
+    <audio id="errorSound" src="error-sound.mp3" preload="auto"></audio> <!-- Error sound -->
 
     <script>
         document.getElementById('myButton').addEventListener('click', async () => {
+            const loader = document.getElementById('loader');
+            const statusMessage = document.getElementById('statusMessage');
+            const button = document.getElementById('myButton');
+            const errorSound = document.getElementById('errorSound'); // Get error sound element
+            
+            loader.style.display = 'block';
+            button.disabled = true;
+            statusMessage.style.opacity = 0;
+
             try {
                 const response = await fetch('http://localhost:3001/scrape-and-seed', {
                     method: 'POST',
@@ -21,13 +108,22 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    alert('Scraping started successfully!');
+                    statusMessage.innerHTML = 'Scraping started successfully!';
+                    statusMessage.style.color = '#00ff00';
                 } else {
-                    alert(`Error: ${result.message || 'Failed to start scraping.'}`);
+                    statusMessage.innerHTML = `Error: ${result.message || 'Failed to start scraping.'}`;
+                    statusMessage.style.color = '#ff0000';
+                    errorSound.play(); // Play error sound on failure
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Error occurred while starting scraping.');
+                statusMessage.innerHTML = 'Error occurred while starting scraping.';
+                statusMessage.style.color = '#ff0000';
+                errorSound.play(); // Play error sound on failure
+            } finally {
+                loader.style.display = 'none';
+                button.disabled = false;
+                statusMessage.style.opacity = 1;
             }
         });
     </script>

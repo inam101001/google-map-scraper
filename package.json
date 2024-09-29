@@ -2,12 +2,12 @@
   "name": "google-maps-scraper",
   "version": "0.0.1",
   "description": "A scraper application for Google Maps data.",
-  "author": "", 
+  "author": "Inam",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build && npm run copy-html",
-    "copy-html": "copyfiles -u 1 src/electron/index.html src/electron/icon.ico dist",
+    "copy-html": "copyfiles -u 1 src/electron/index.html src/electron/icon.ico src/electron/error-sound.mp3 dist",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -29,8 +29,8 @@
     "icon": "src/electron/icon.ico",
     "files": [
       "dist/electron/**/*",
-      "dist/main.js",
-      "node_modules/**/*" 
+      "dist/**/*",
+"node_modules/**/*"
     ],
     "win": {
       "target": "nsis"
@@ -43,6 +43,7 @@
     "@nestjs/schedule": "^4.1.1",
     "@nestjs/swagger": "^7.4.2",
     "arangojs": "^9.0.0",
+    "electron-log": "^5.2.0",
     "puppeteer": "^23.4.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
