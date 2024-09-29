@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Google Maps Scraper</title>
     <style>
-        /* Your existing styles */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -108,7 +107,7 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    statusMessage.innerHTML = 'Scraping started successfully!';
+                    statusMessage.innerHTML = result.message || 'Scraping started successfully!';
                     statusMessage.style.color = '#00ff00';
                 } else {
                     statusMessage.innerHTML = `Error: ${result.message || 'Failed to start scraping.'}`;
@@ -117,7 +116,7 @@
                 }
             } catch (error) {
                 console.error('Error:', error);
-                statusMessage.innerHTML = 'Error occurred while starting scraping.';
+                statusMessage.innerHTML = `Error: ${error.message || 'Error occurred while scraping.'}`;
                 statusMessage.style.color = '#ff0000';
                 errorSound.play(); // Play error sound on failure
             } finally {
