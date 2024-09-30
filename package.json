@@ -1,19 +1,19 @@
 {
   "name": "google-maps-scraper",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A scraper application for Google Maps data.",
   "author": "Inam",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build && npm run copy-html",
-    "copy-html": "copyfiles -u 1 src/electron/index.html src/electron/icon.ico src/electron/error-sound.mp3 dist",
+    "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "electron:build": "electron-builder -p always",
+    "electron:build:all": "electron-builder -l -p always",
+    "electron:build": "electron-builder",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -26,15 +26,29 @@
   "build": {
     "appId": "com.electron.google-maps-scraper",
     "productName": "Google Maps Scraper",
-    "icon": "src/electron/icon.ico",
+    "icon": "src/electron/assets/icon.ico",
     "files": [
       "dist/electron/**/*",
-      "dist/**/*",
-"node_modules/**/*"
+      "dist/**/*"
     ],
     "win": {
+      "icon": "src/electron/assets/icon.ico",
       "target": "nsis"
-    }
+    },
+    "mac": {
+    "target": [
+      "dmg"
+    ],
+    "icon": "src/electron/assets/icon.icns",
+    "category": "public.app-category.utilities"
+  },
+  "linux": {
+    "target": [
+      "AppImage"
+    ],
+    "icon": "src/electron/assets/icon.png",
+    "category": "Utility"
+  }
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
@@ -60,7 +74,6 @@
     "@types/supertest": "^6.0.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
-    "copyfiles": "^2.4.1",
     "electron": "^32.1.2",
     "electron-builder": "^25.0.5",
     "eslint": "^8.42.0",

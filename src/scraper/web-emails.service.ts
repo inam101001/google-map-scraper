@@ -11,12 +11,11 @@ export class WebEmailsService {
     async scrapeEmailsFromWebsite(url: string): Promise<string | null> { 
         let foundEmail: string | null = null; 
 
-        const browser= await puppeteer.launch({headless:false,
+        const browser= await puppeteer.launch({headless:true,
           args: [
             '--disable-gpu',
             '--no-sandbox'
-          ],
-          protocolTimeout: 90000});
+          ]});
         const page = await browser.newPage();
 
         await page.setRequestInterception(true);

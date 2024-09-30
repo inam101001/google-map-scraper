@@ -84,14 +84,14 @@
         <div class="message" id="statusMessage"></div>
     </div>
 
-    <audio id="errorSound" src="error-sound.mp3" preload="auto"></audio> <!-- Error sound -->
+    <audio id="errorSound" src="error-sound.mp3" preload="auto"></audio>
 
     <script>
         document.getElementById('myButton').addEventListener('click', async () => {
             const loader = document.getElementById('loader');
             const statusMessage = document.getElementById('statusMessage');
             const button = document.getElementById('myButton');
-            const errorSound = document.getElementById('errorSound'); // Get error sound element
+            const errorSound = document.getElementById('errorSound'); 
             
             loader.style.display = 'block';
             button.disabled = true;
@@ -112,13 +112,13 @@
                 } else {
                     statusMessage.innerHTML = `Error: ${result.message || 'Failed to start scraping.'}`;
                     statusMessage.style.color = '#ff0000';
-                    errorSound.play(); // Play error sound on failure
+                    errorSound.play(); 
                 }
             } catch (error) {
                 console.error('Error:', error);
                 statusMessage.innerHTML = `Error: ${error.message || 'Error occurred while scraping.'}`;
                 statusMessage.style.color = '#ff0000';
-                errorSound.play(); // Play error sound on failure
+                errorSound.play(); 
             } finally {
                 loader.style.display = 'none';
                 button.disabled = false;

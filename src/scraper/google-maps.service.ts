@@ -78,10 +78,10 @@ export class GoogleMapsService {
     });
   }
   async scrapeGoogleMaps(url: string): Promise<any[]> {
-    const browser = await puppeteer.launch({ headless: false,args: [
+    const browser = await puppeteer.launch({ headless: true,args: [
       '--disable-gpu',
       '--no-sandbox'
-    ],protocolTimeout: 90000 });
+    ]});
     const page = await browser.newPage();
 
     await page.setDefaultNavigationTimeout(20000);

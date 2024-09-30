@@ -1,34 +1,26 @@
 import { app, BrowserWindow } from 'electron';
-import { exec, ChildProcess } from 'child_process';
+import { ChildProcess } from 'child_process';
 import * as net from 'net';
 import * as path from 'path';
 import log from 'electron-log/main';
 import { AppModule } from 'src/app.module';
 import { NestFactory } from '@nestjs/core';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, {
-      cors: {
-        origin: '*',
-        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-        allowedHeaders: '*',
-        credentials: true,
-      },
+        cors: {
+            origin: '*',
+            methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+            allowedHeaders: '*',
+            credentials: true,
+        },
     });
-  
-    const config = new DocumentBuilder()
-      .setTitle('Google Maps Scraper')
-      .setVersion('1.0')
-      .build();
-    const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api', app, document);
     await app.listen(3001);
-  }
-  
+}
+
 
 let mainWindow: BrowserWindow | null = null;
-let nestProcess: ChildProcess | null = null; // Reference for NestJS process
+const nestProcess: ChildProcess | null = null; 
 
 // Function to check if the server is up
 function isPortTaken(port: number): Promise<boolean> {
@@ -57,7 +49,7 @@ async function createWindow() {
     });
 
     // Load your local index.html file
-    mainWindow.loadFile(path.join(__dirname, 'index.html'));
+    mainWindow.loadFile(path.join(__dirname, 'assets', 'index.html'));
 
     mainWindow.on('closed', () => {
         mainWindow = null;
@@ -89,18 +81,6 @@ if (!gotTheLock) {
     });
 
     app.whenReady().then(() => {
-        // Start the NestJS application
-        try {
-            
-            log.info('Starting NestJS server...1');
-            const serverScript = path.join(__dirname, 'main.js');
-            log.info('Starting NestJS server...2');
-            nestProcess = exec(`node ${serverScript}`);
-            log.info('Starting NestJS server...3');
-        } catch (error) {
-            log.info('Error starting NestJS server:', error);
-        }
-
 
         // Check if the server is ready
         log.info('Checking if PORT 3001 is taken...');
@@ -110,21 +90,14 @@ if (!gotTheLock) {
             if (!isTaken) {
                 log.info('PORT 3001 is free, starting the server...');
                 clearInterval(checkInterval); // Stop checking
-                createWindow();
                 bootstrap();
+                createWindow();
             }
             if (isTaken) {
                 log.info('PORT 3001 is taken');
             }
         });
 
-        // Handle NestJS output
-        nestProcess.stdout.on('data', (data) => {
-            log.info('NestJS Output (stdout):', data);
-        });
-        nestProcess.stderr.on('data', (data) => {
-            log.info('NestJS Output (stderr):', data);
-        });
 
         // Handle application exit
         app.on('before-quit', () => {
