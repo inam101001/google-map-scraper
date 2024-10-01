@@ -14,7 +14,8 @@ export class WebEmailsService {
         const browser= await puppeteer.launch({protocolTimeout: 20000, headless: true,
           args: [
             '--disable-gpu',
-            '--no-sandbox'
+            '--no-sandbox',
+            '--headless'
           ]});
         const page = await browser.newPage();
 
