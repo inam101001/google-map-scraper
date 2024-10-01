@@ -5,6 +5,7 @@ import * as path from 'path';
 import log from 'electron-log/main';
 import { AppModule } from 'src/app.module';
 import { NestFactory } from '@nestjs/core';
+import { autoUpdater } from 'electron-updater'; // Import autoUpdater
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, {
@@ -17,7 +18,6 @@ async function bootstrap() {
     });
     await app.listen(3001);
 }
-
 
 let mainWindow: BrowserWindow | null = null;
 const nestProcess: ChildProcess | null = null; 
@@ -82,6 +82,19 @@ if (!gotTheLock) {
 
     app.whenReady().then(() => {
 
+        // Check for updates
+        autoUpdater.checkForUpdatesAndNotify(); // Check for updates
+
+        autoUpdater.on('update-available', (info) => {
+            log.info('Update available:', info);
+            log.info('A new version is available. The app will update automatically.');
+        });
+
+        autoUpdater.on('update-downloaded', () => {
+            log.info('Update downloaded. Installing...');
+            autoUpdater.quitAndInstall(); // Automatically install the update
+        });
+
         // Check if the server is ready
         log.info('Checking if PORT 3001 is taken...');
         const port = 3001;
@@ -97,7 +110,6 @@ if (!gotTheLock) {
                 log.info('PORT 3001 is taken');
             }
         });
-
 
         // Handle application exit
         app.on('before-quit', () => {

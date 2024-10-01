@@ -12,7 +12,6 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "electron:build:all": "electron-builder -l -p always",
     "electron:build": "electron-builder",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
@@ -36,19 +35,26 @@
       "target": "nsis"
     },
     "mac": {
-    "target": [
-      "dmg"
-    ],
-    "icon": "src/electron/assets/icon.icns",
-    "category": "public.app-category.utilities"
-  },
-  "linux": {
-    "target": [
-      "AppImage"
-    ],
-    "icon": "src/electron/assets/icon.png",
-    "category": "Utility"
-  }
+      "target": [
+        "dmg"
+      ],
+      "icon": "src/electron/assets/icon.icns",
+      "category": "public.app-category.utilities"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "icon": "src/electron/assets/icon.png",
+      "category": "Utility"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "inam101001",
+        "repo": "google-map-scraper"
+      }
+    ]
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
@@ -58,6 +64,7 @@
     "@nestjs/swagger": "^7.4.2",
     "arangojs": "^9.0.0",
     "electron-log": "^5.2.0",
+    "electron-updater": "^6.3.4",
     "puppeteer": "^23.4.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
