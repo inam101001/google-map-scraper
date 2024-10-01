@@ -27,14 +27,19 @@ export class GoogleMapsService {
           break;
         }
 
-        const { query, _key } = queryDoc;
+        const { query, _key, city, country } = queryDoc;
         const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(query)}`;
 
         this.logger.log(`Processing query: "${query}"`);
 
         const services = await this.scrapeGoogleMaps(searchUrl, _key);
 
-        await this.googleMapsDbService.seedServiceData(services, this.collectionName);
+        const location = [`${city}, ${country}`];
+        services.forEach(service => {
+            service.location = location;
+        });
+
+        await this.googleMapsDbService.seedServiceData(services, this.collectionName, location);
         await this.googleMapsDbService.updateQueryStatus(_key, true);
 
         this.logger.log(`Query "${query}" scraped and stored successfully.\n`);
@@ -44,6 +49,77 @@ export class GoogleMapsService {
     } catch (error) {
       this.logger.error('Error during scraping and storing process:', error.message);
       return { message: 'Error during scraping and storing process: ' + error.message };
+    }
+  }
+
+  async scrapeGoogleMaps(url: string, _key: string): Promise<any[]> {
+    const browser = await puppeteer.launch({
+      protocolTimeout: 20000, headless: true, args: [
+        '--disable-gpu',
+        '--no-sandbox',
+        '--headless'
+      ]
+    });
+    const page = await browser.newPage();
+
+    try {
+      await page.setDefaultNavigationTimeout(20000);
+      await page.goto(url, { waitUntil: 'networkidle2', timeout: 20000 });
+
+      
+      const isNonTargetPage = await page.evaluate(() => {
+
+        const onePageElement = document.querySelector('div.LRkQ2 > div.Gpq6kf.fontTitleSmall')
+        const twoPageElement = document.querySelector('div.zvLtDc > h1.DUwDvf.lfPIob > span.a5H0ec');
+        const threePageElement = document.querySelector('div.zSdcRe > h2.kPvgOb.fontHeadlineSmall')
+        const fourPageElement = document.querySelector('h2.kPvgOb.fontHeadlineSmall')
+        
+        return !!onePageElement || !!twoPageElement || !!threePageElement || !!fourPageElement;
+      });
+
+      if (isNonTargetPage) {
+        this.logger.log('Found 0 services from Google Maps. Skipping this query.');
+        await this.googleMapsDbService.updateQueryStatus(_key, true);
+        await browser.close();
+        return [];
+      }
+
+
+      await this.autoScroll(page);
+
+      const services = await page.evaluate(() => {
+        const serviceList: any[] = [];
+        document.querySelectorAll('.Nv2PK').forEach((item: any) => {
+          const company = item.querySelector('.qBF1Pd')?.textContent?.trim() || '';
+          const serviceElement = Array.from(item.querySelectorAll('.W4Efsd')).find((el: Element) =>
+            (el.textContent || '').includes('·') && !(el.textContent || '').includes('stars')
+          ) as HTMLElement;
+          const service = serviceElement ? (serviceElement.querySelector('span span') as HTMLElement)?.textContent?.trim() : '';
+          const phoneNumber = item.querySelector('.UsdlK')?.textContent?.trim() || '';
+          const websiteElement = item.querySelector('.lcr4fd[href^="http"]');
+          const websiteUrl = websiteElement ? websiteElement.getAttribute('href') : null;
+
+          serviceList.push({ company, service, phoneNumber, websiteUrl });
+        });
+        return serviceList;
+      });
+
+      this.logger.log(`Found ${services.length} services from Google Maps.`);
+
+      for (const service of services) {
+        if (service.websiteUrl) {
+          const email = await this.webEmailsService.scrapeEmailsFromWebsite(service.websiteUrl); // Scrape emails
+          service.email = email;
+        }
+      }
+
+      await browser.close();
+      return services;
+
+    } catch (error) {
+      this.logger.error(error.message);
+      await browser.close();
+      throw error;
     }
   }
 
@@ -76,76 +152,6 @@ export class GoogleMapsService {
         }, 200);
       });
     });
-  }
-  async scrapeGoogleMaps(url: string, _key: string): Promise<any[]> {
-    const browser = await puppeteer.launch({
-      protocolTimeout: 20000, headless: true, args: [
-        '--disable-gpu',
-        '--no-sandbox'
-      ]
-    });
-    const page = await browser.newPage();
-
-    try {
-      await page.setDefaultNavigationTimeout(20000);
-      await page.goto(url, { waitUntil: 'networkidle2', timeout: 20000 });
-
-      
-      const isNonTargetPage = await page.evaluate(() => {
-
-        const onePageElement = document.querySelector('div.LRkQ2 > div.Gpq6kf.fontTitleSmall')
-        const twoPageElement = document.querySelector('div.zvLtDc > h1.DUwDvf.lfPIob > span.a5H0ec');
-        const threePageElement = document.querySelector('div.zSdcRe > h2.kPvgOb.fontHeadlineSmall')
-        const fourPageElement = document.querySelector('h2.kPvgOb.fontHeadlineSmall')
-        
-        return !!onePageElement || !!twoPageElement || !!threePageElement || !!fourPageElement;
-      });
-
-      if (isNonTargetPage) {
-        this.logger.log('Invalid page detected. Skipping this query.');
-        await this.googleMapsDbService.updateQueryStatus(_key, true);
-        await browser.close();
-        return [];
-      }
-
-
-      await this.autoScroll(page);
-
-      const services = await page.evaluate(() => {
-        const serviceList: any[] = [];
-        document.querySelectorAll('.Nv2PK').forEach((item: any) => {
-          const company = item.querySelector('.qBF1Pd')?.textContent?.trim() || '';
-          const serviceElement = Array.from(item.querySelectorAll('.W4Efsd')).find((el: Element) =>
-            (el.textContent || '').includes('·') && !(el.textContent || '').includes('stars')
-          ) as HTMLElement;
-          const service = serviceElement ? (serviceElement.querySelector('span span') as HTMLElement)?.textContent?.trim() : '';
-          const phoneNumber = item.querySelector('.UsdlK')?.textContent?.trim() || '';
-          const websiteElement = item.querySelector('.lcr4fd[href^="http"]');
-          const websiteUrl = websiteElement ? websiteElement.getAttribute('href') : null;
-
-          serviceList.push({ company, service, phoneNumber, websiteUrl });
-        });
-        return serviceList;
-      });
-
-      this.logger.log(`Found ${services.length} services from Google Maps.`);
-
-      // Call WebEmailsService to scrape emails for each website
-      for (const service of services) {
-        if (service.websiteUrl) {
-          const email = await this.webEmailsService.scrapeEmailsFromWebsite(service.websiteUrl); // Scrape emails
-          service.email = email; // Attach the scraped emails to the service object
-        }
-      }
-
-      await browser.close();
-      return services;
-
-    } catch (error) {
-      this.logger.error(error.message);
-      await browser.close();
-      throw error;
-    }
   }
 
 }

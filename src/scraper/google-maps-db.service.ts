@@ -45,9 +45,7 @@ export class GoogleMapsDbService {
       throw new Error('Failed to update query status');
     }
   }
-  
-  
-async seedServiceData(services: any[], collectionName: string): Promise<string> {
+  async seedServiceData(services: any[], collectionName: string, newLocation: string[]): Promise<string> {
     try {
       const collection = this.db.collection(collectionName);
 
@@ -69,28 +67,36 @@ async seedServiceData(services: any[], collectionName: string): Promise<string> 
         if (existingDocs.length > 0) {
           const existingDoc = existingDocs[0];
 
-          // Update the existing document if the data has changed
           const existingServices = existingDoc.service || [];
           if (!existingServices.includes(newService)) {
             existingServices.push(newService);
           }
 
+          const existingLocation = existingDoc.location || [];
+          const locationsToAdd = Array.isArray(newLocation) ? newLocation : [newLocation];
+
+          locationsToAdd.forEach(loc => {
+            if (!existingLocation.includes(loc)) {
+              existingLocation.push(loc);
+            }
+          });
+
           const updatedDoc = {
             ...existingDoc,
             service: existingServices,
-            email: email || existingDoc.email, // Update email if provided
+            email: email || existingDoc.email, 
+            location: existingLocation
           };
 
-          // Perform the update
           await collection.update(existingDoc._key, updatedDoc);
         } else {
-          // Insert new document if no match is found
           await collection.save({
             company,
             service: [newService],
             phoneNumber,
             websiteUrl,
             email,
+            location: Array.isArray(newLocation) ? newLocation : [newLocation] 
           });
         }
       }
